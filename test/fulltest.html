@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<!-- Includes -->
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
+	<script type="text/javascript" src="../classes/graph.js"></script>
+	<script type="text/javascript" src="../classes/colors.js"></script>
+	<script type="text/javascript" src="draw.js"></script>
+	<script type="text/javascript" src="../lib/algo.js"></script>
+
+	<style>
+		* { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 12px; }
+		html, body { margin: 0px; }
+		canvas { border: 1px solid  #AAA; }
+		span { text-transform: uppercase; color: #4577D4; display: block; margin-bottom: 5px; font-weight: bold; }
+		h2 { font-size: 24px; margin: 0px; color: #FFF; }
+		.container { width: 400px; margin: 80px auto; }
+		.container .row { margin-top: 30px; }
+		.header { position: fixed; top: 0px; left: 0px; padding: 15px; background-color: #4577D4; width: 100%; padding-left: 80px; }
+		.header h2 { display: inline-block; }
+		.description { display: inline-block; margin: 0px 25px 0px 25px; color: #ddd; vertical-align: middle; }
+		.description .inner { margin-bottom: 9px; }
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="header">
+			<h2>Depixel</h2>
+			<div class="description">
+				<div class="inner">
+					Converts a pixel image into a vector representation
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<span>Original:</span>
+			<canvas height="160" width="400" id="original"></canvas>
+		</div>
+		<div class="row">
+			<span>Result:</span>
+			<canvas height="160" width="400" id="result"></canvas>
+		</div>
+	</div>
+
+	<!-- Do stuff -->
+	<script type="text/javascript">
+		var canvas = document.getElementById('original');
+		var resultCanvas = document.getElementById('result');
+		var context = canvas.getContext('2d');
+		var pixelSize = 10;
+
+		draw.initialize({
+			canvas: resultCanvas,
+			pixelSize: pixelSize
+		});
+
+		// Load the image
+		var img = new Image();
+		img.crossOrigin = 'anonymous';
+
+		img.onload = function () {
+			context.drawImage(img, 0, 0);
+
+			var imageData = context.getImageData(0, 0, 400, 160);
+
+			var nodegraph = window.nodegraph = toNodeGraph(canvas, 10);
+
+			createSimilarityGraph(nodegraph);
+
+			pruneSimilarityGraph(nodegraph);
+
+
+			// Create a flat array of edges in this nodegraph
+			var edges = _.chain(_.values(nodegraph.edges)).map(_.values).flatten().value();
+
+			draw.nodegraph(_.flatten(nodegraph.nodes), edges);
+		};
+
+
+		img.src = 'https://dl.dropboxusercontent.com/s/a0e0b73693umg92/dolphin.jpg';
+	</script>
+</body>
+</html>

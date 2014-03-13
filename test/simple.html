@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<!-- Includes -->
+	<script type="text/javascript" src="classes/graph.js"></script>
+	<script type="text/javascript" src="classes/colors.js"></script>
+	<script type="text/javascript" src="draw.js"></script>
+
+	<style>
+		html, body { margin: 0px; }
+		canvas { border: 1px solid  #AAA; }
+		.container { width: 260px; margin: 30px auto; }
+	</style>
+</head>
+<body>
+	<div class="container">
+		<canvas height="400" width="260" id="sprite"></canvas>
+	</div>
+
+	<!-- Do stuff -->
+	<script type="text/javascript">
+		var el = document.getElementById.bind(document),
+			pixelSize = 10,
+			edgeCount = 400,
+			canvas = el('sprite'),
+			height = canvas.height,
+			width = canvas.width;
+
+		draw.initialize({
+			canvas: el('sprite'),
+			pixelSize: pixelSize
+		});
+
+		// Create some test objects
+		var nodes = generateNodes();
+
+		var edges = generateEdges(nodes);
+
+		draw.nodegraph(nodes, []);
+
+		// -----------------------------------------------
+
+		function generateNodes() {
+			var result = [];
+
+			for (var i = 0; i < height / pixelSize; i++) {
+				for (var j = 0; j < width / pixelSize; j++) {
+					var col = color();
+					//console.log(col);
+					result.push(new Node({ row: i, col: j }, col));
+				}
+			}
+
+			return result;
+		}
+
+		function generateEdges(nodes) {
+			// Generate edges between adjacent edges
+			var edges = [],
+				hs = {};
+
+			var tnodes = transform(nodes);
+
+			while (edges.length < edgeCount) {
+				var start = rand(nodes);
+
+				var xd = rand([-1, 0, 1]),
+					yd = rand([-1, 0, 1]);
+
+				var row = tnodes[start.position.row + yd];
+				var end = row && row[start.position.col + xd];
+
+				if (end && !equalPos(start.position, end.position) && (!hs[start.id] || !hs[start.id][end.id])) {
+					edges.push(new Edge(start, end));
+
+					if (!hs[start.id]) {
+						hs[start.id] = {};
+					}
+					if (!hs[end.id]) {
+						hs[end.id] = {};
+					}
+
+					hs[start.id][end.id] = 1;
+					hs[end.id][start.id] = 1;
+				}
+			}
+
+			return edges;
+		}
+
+		function transform(nodes) {
+			var matrix = [];
+			var colCount = width / pixelSize;
+			for (var i = 0; i < nodes.length; i+=colCount) {
+				matrix.push(nodes.slice(i,i+colCount));
+			}
+			return matrix;
+		}
+
+		function color() {
+			// Returns one of a few random colors
+			return rand(['#FF0000', '#FF6600', '#FF3300', '#FF9900']);
+		}
+
+		function rand(values) {
+			var i = Math.floor(Math.random() * values.length);
+			return values[i];
+		}
+
+		function equalPos(first, second) {
+			return first.row === second.row && first.col === second.col;
+		}
+	</script>
+</body>
+</html>
